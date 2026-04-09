@@ -99,6 +99,7 @@ async def main():
     # Запускаем веб-сервер и бота параллельно
     await asyncio.gather(
         run_web_server(),
+        await bot.delete_webhook(drop_pending_updates=True)
         dp.start_polling(bot)
     )
 
