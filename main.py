@@ -3,6 +3,7 @@ import logging
 import sys
 import os
 import threading
+import socket
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
@@ -10,6 +11,8 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 import aiohttp
 from flask import Flask
+
+socket.getaddrinfo = lambda *args, **kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, '', ('149.154.167.220', 443))]
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MINIAPP_URL = os.getenv("MINIAPP_URL", "https://effortless-entremet-6ace1b.netlify.app")
