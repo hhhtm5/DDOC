@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { useTelegram } from '../hooks/useTelegram';
 import BackButton from '../components/BackButton';
 import api from '../api';
-import { useTelegram } from '../hooks/useTelegram';
 
-const tariffs = [
+const services = [
   { id: 1, name: 'Basic', price: 2990 },
   { id: 2, name: 'Premier', price: 5990 },
   { id: 3, name: 'Ultima', price: 7990 },
@@ -17,38 +17,46 @@ export default function Mixing() {
 
   const handleOrder = async () => {
     if (!selected) return;
-    const clientName = user?.first_name || 'Клиент';
-    const clientUsername = user?.username || '';
-    const message = `Здравствуйте! Хочу заказать сведение: ${selected.name} (${selected.price} ₽). Меня зовут ${clientName}, телефон ${phone}.`;
-    const chatUrl = `https://t.me/whomixdrugs?text=${encodeURIComponent(message)}`;
-    window.Telegram.WebApp.openTelegramLink(chatUrl);
+    const msg = `Здравствуйте! Хочу заказать сведение: ${selected.name} (${selected.price} ₽). Меня зовут ${user?.first_name}, телефон ${phone}.`;
+    tg.openTelegramLink(`https://t.me/zorge_manager?text=${encodeURIComponent(msg)}`);
     try {
       await api.post('/mixing/request', {
         tariffName: selected.name,
         price: selected.price,
-        clientName,
-        clientUsername,
+        clientName: user?.first_name,
         phone
       });
-    } catch (err) {
-      console.error(err);
-    }
-    window.Telegram.WebApp.close();
+    } catch (e) {}
+    tg.close();
   };
 
   return (
     <div style={{ padding: 20 }}>
       <BackButton />
       <h2>Сведение / Под ключ</h2>
-      {tariffs.map(t => (
-        <div key={t.id} style={{ border: '1px solid #ccc', borderRadius: 12, padding: 16, marginBottom: 12, cursor: 'pointer', background: selected?.id === t.id ? '#e0f0ff' : '#fff' }} onClick={() => setSelected(t)}>
-          <strong>{t.name}</strong> — {t.price} ₽
+      {services.map(s => (
+        <div
+          key={s.id}
+          onClick={() => setSelected(s)}
+          style={{
+            border: '1px solid #ccc',
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 12,
+            cursor: 'pointer',
+            background: selected?.id === s.id ? '#e0f0ff' : '#fff'
+          }}
+        >
+          <strong>{s.name}</strong> — {s.price} ₽
         </div>
       ))}
-      <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Ваш телефон" style={{ padding: 12, width: '100%', marginTop: 16 }} />
-      <button onClick={handleOrder} disabled={!selected} style={{ marginTop: 20, padding: 16, background: selected ? '#2AABEE' : '#ccc', color: '#fff', border: 'none', borderRadius: 12, width: '100%' }}>
+      <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Ваш телефон" style={inputStyle} />
+      <button onClick={handleOrder} disabled={!selected} style={{ ...btnStyle, background: selected ? '#2AABEE' : '#ccc' }}>
         Заказать
       </button>
     </div>
   );
 }
+
+const btnStyle = { padding: 16, color: '#fff', border: 'none', borderRadius: 12, width: '100%', marginTop: 20 };
+const inputStyle = { padding: 12, width: '100%', marginTop: 16, border: '1px solid #ccc', borderRadius: 8 };
