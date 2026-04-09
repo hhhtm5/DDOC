@@ -1,13 +1,33 @@
 import asyncio
 import logging
 import sys
+import os
+import threading
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 import aiohttp
-from config import BOT_TOKEN, API_URL, MINIAPP_URL
+from flask import Flask
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+MINIAPP_URL = os.getenv("MINIAPP_URL", "https://effortless-entremet-6ace1b.netlify.app")
+API_URL = os.getenv("API_URL", "http://localhost:3001/api")
+PORT = int(os.getenv("PORT", 10000))
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running", 200
+
+@app.route('/health')
+def health():
+    return "OK", 200
+
+def run_flask():
+    app.run(host="0.0.0.0", port=PORT)
 
 dp = Dispatcher()
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
@@ -22,11 +42,13 @@ start_keyboard = ReplyKeyboardMarkup(
 @dp.message(CommandStart())
 async def start_command(message: Message):
     await message.answer(
-        "🎙 <b>LAB RECORDS STUDIO</b>\n"
+        "🔊 <b>LAB RECORDS STUDIO</b>\n"
         "━━━━━━━━━━━━━━━━━━━━\n\n"
-        "Рады приветствовать вас в нашем официальном боте.\n"
-        "Здесь вы можете ознакомиться с услугами, ценами и забронировать время.\n\n"
-        "<i>Пожалуйста, авторизуйтесь по номеру телефона, чтобы продолжить.</i> 📞",
+        "Добро пожаловать в пространство чистого звука.\n\n"
+        "📀 Запись\n"
+        "🎧 Сведение\n"
+        "🔊 Мастеринг\n\n"
+        "📞 Пожалуйста, отправьте номер телефона для входа.",
         reply_markup=start_keyboard
     )
 
@@ -50,13 +72,19 @@ async def contact_handler(message: Message):
             pass
 
     await message.answer(
-        "✅ Вы успешно зарегистрированы!\n\n"
-        "Теперь нажмите кнопку меню (слева от поля ввода), чтобы открыть студию.",
+        "📀 Вы успешно авторизованы.\n\n"
+        "Чтобы открыть студию, нажмите кнопку меню рядом с полем ввода.",
         reply_markup=ReplyKeyboardRemove()
     )
 
-async def main():
+async def run_bot():
     await dp.start_polling(bot)
+
+async def main():
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+    await run_bot()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
