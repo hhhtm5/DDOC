@@ -68,10 +68,18 @@ async def contact_handler(message: Message):
             pass
 
     await message.answer(
-        "📀 Вы успешно авторизованы.\n\n"
-        "Чтобы открыть студию, нажмите кнопку меню рядом с полем ввода.",
-        reply_markup=ReplyKeyboardRemove()
-    )
+    "✅ <b>РЕГИСТРАЦИЯ ПРОЙДЕНА</b>\n"
+    "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+    "<i>Добро пожаловать в закрытое сообщество ZÖRGE.</i> 🔐\n\n"
+    "🎛️ Теперь вам доступны:\n"
+    "▸ 🗓️ <u>Аренда студии</u>\n"
+    "▸ 📦 <u>Пакеты часов</u>\n"
+    "▸ 🎚️ <u>Сведение и мастеринг</u>\n\n"
+    "<blockquote>💡 Чтобы открыть студию, нажмите кнопку меню слева от поля ввода.</blockquote>\n\n"
+    "<tg-spoiler>🔒 Ваш номер используется только для связи с администратором.</tg-spoiler>\n\n"
+    "<code>🎧 ZÖRGE — место, где рождается звук.</code>",
+    reply_markup=ReplyKeyboardRemove()
+)
 
 # Простой веб-сервер для Render
 async def handle_health(request):
