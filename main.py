@@ -2,7 +2,6 @@ import asyncio
 import logging
 import sys
 import os
-import threading
 import socket
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
@@ -93,9 +92,6 @@ async def run_web_server():
     site = web.TCPSite(runner, '0.0.0.0', PORT)
     await site.start()
     logging.info(f"Web server started on port {PORT}")
-
-async def run_bot():
-    await dp.start_polling(bot)
 
 async def main():
     try:
