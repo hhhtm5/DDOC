@@ -2,7 +2,6 @@ import asyncio
 import logging
 import sys
 import os
-import threading
 import socket
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
@@ -10,27 +9,15 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKey
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 import aiohttp
-from flask import Flask
+from aiohttp import web
 
+# Фикс DNS
 socket.getaddrinfo = lambda *args, **kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, '', ('149.154.167.220', 443))]
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MINIAPP_URL = os.getenv("MINIAPP_URL", "https://effortless-entremet-6ace1b.netlify.app")
 API_URL = os.getenv("API_URL", "http://localhost:3001/api")
 PORT = int(os.getenv("PORT", 10000))
-
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "Bot is running", 200
-
-@app.route('/health')
-def health():
-    return "OK", 200
-
-def run_flask():
-    app.run(host="0.0.0.0", port=PORT)
 
 dp = Dispatcher()
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
@@ -80,14 +67,26 @@ async def contact_handler(message: Message):
         reply_markup=ReplyKeyboardRemove()
     )
 
-async def run_bot():
-    await dp.start_polling(bot)
+# Простой веб-сервер для Render
+async def handle_health(request):
+    return web.Response(text="OK")
+
+async def run_web_server():
+    app = web.Application()
+    app.router.add_get('/', handle_health)
+    app.router.add_get('/health', handle_health)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', PORT)
+    await site.start()
+    logging.info(f"Web server started on port {PORT}")
 
 async def main():
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
-    await run_bot()
+    # Запускаем веб-сервер и бота параллельно
+    await asyncio.gather(
+        run_web_server(),
+        dp.start_polling(bot)
+    )
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
