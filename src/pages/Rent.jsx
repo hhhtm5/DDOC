@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
-import Calendar from '../components/Calendar';
-import TariffSelector from '../components/TariffSelector';
 import BackButton from '../components/BackButton';
+import BookingCalendar from '../components/Calendar';
+import TariffSelector from '../components/TariffSelector';
 import api from '../api';
 
 const tariffs = [
@@ -13,58 +12,49 @@ const tariffs = [
 ];
 
 export default function Rent() {
-  const navigate = useNavigate();
   const { tg, user } = useTelegram();
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTariff, setSelectedTariff] = useState(null);
-  const [selectedTime, setSelectedTime] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [time, setTime] = useState('');
+  const [tariff, setTariff] = useState(null);
   const [phone, setPhone] = useState('');
 
   const handleBook = async () => {
-    if (!selectedDate || !selectedTariff || !selectedTime) {
-      alert('Заполните все поля');
-      return;
-    }
-    const clientName = user?.first_name || 'Клиент';
-    const clientUsername = user?.username || '';
-    const message = `Здравствуйте! Хочу забронировать студию на ${selectedDate.toISOString().split('T')[0]} в ${selectedTime}. Тариф: ${selectedTariff.name} (${selectedTariff.price} ₽). Меня зовут ${clientName}, телефон ${phone}.`;
-    const chatUrl = `https://t.me/whomixdrugs?text=${encodeURIComponent(message)}`;
-    window.Telegram.WebApp.openTelegramLink(chatUrl);
+    if (!tariff || !time) return alert('Выберите время и тариф');
+    const msg = `Здравствуйте! Хочу забронировать студию на ${date.toISOString().split('T')[0]} в ${time}. Тариф: ${tariff.name} (${tariff.price} ₽). Меня зовут ${user?.first_name}, телефон ${phone}.`;
+    tg.openTelegramLink(`https://t.me/zorge_manager?text=${encodeURIComponent(msg)}`);
     try {
       await api.post('/rent/book', {
-        date: selectedDate.toISOString().split('T')[0],
-        time: selectedTime,
-        tariffId: selectedTariff.id,
-        clientName,
-        clientUsername,
+        date: date.toISOString().split('T')[0],
+        time,
+        tariffId: tariff.id,
+        clientName: user?.first_name,
         phone
       });
-    } catch (err) {
-      console.error(err);
-    }
-    window.Telegram.WebApp.close();
+    } catch (e) {}
+    tg.close();
   };
 
   return (
     <div style={{ padding: 20 }}>
       <BackButton />
       <h2>Аренда студии</h2>
-      <h3>1. Дата</h3>
-      <Calendar onSelectSlot={setSelectedDate} />
-      <h3>2. Время</h3>
-      <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} style={{ padding: 12, width: '100%' }}>
-        <option value="">-- Выберите время --</option>
+      <h3>Дата</h3>
+      <BookingCalendar onSelectSlot={setDate} />
+      <h3>Время</h3>
+      <select value={time} onChange={e => setTime(e.target.value)} style={inputStyle}>
+        <option value="">-- Выберите --</option>
         <option value="10:00">10:00</option>
         <option value="14:00">14:00</option>
         <option value="18:00">18:00</option>
       </select>
-      <h3>3. Тариф</h3>
-      <TariffSelector options={tariffs} selected={selectedTariff} onSelect={setSelectedTariff} />
-      <h3>4. Телефон</h3>
-      <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7..." style={{ padding: 12, width: '100%' }} />
-      <button onClick={handleBook} style={{ marginTop: 20, padding: 16, background: '#2AABEE', color: '#fff', border: 'none', borderRadius: 12, width: '100%' }}>
-        Забронировать
-      </button>
+      <h3>Тариф</h3>
+      <TariffSelector options={tariffs} selected={tariff} onSelect={setTariff} />
+      <h3>Телефон</h3>
+      <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7..." style={inputStyle} />
+      <button onClick={handleBook} style={btnStyle}>Забронировать</button>
     </div>
   );
 }
+
+const btnStyle = { padding: 16, background: '#2AABEE', color: '#fff', border: 'none', borderRadius: 12, width: '100%', marginTop: 20 };
+const inputStyle = { padding: 12, width: '100%', marginBottom: 12, border: '1px solid #ccc', borderRadius: 8 };
