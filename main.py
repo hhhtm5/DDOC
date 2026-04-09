@@ -96,11 +96,13 @@ async def run_web_server():
     logging.info(f"Web server started on port {PORT}")
 
 async def main():
-    # Запускаем веб-сервер и бота параллельно
-    await asyncio.gather(
-        run_web_server(),
-        await bot.delete_webhook(drop_pending_updates=True)
-        dp.start_polling(bot)
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+    
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
+    
     )
 
 if __name__ == "__main__":
