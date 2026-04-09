@@ -99,12 +99,11 @@ async def run_bot():
 
 async def main():
     try:
-        flask_thread = threading.Thread(target=run_flask)
-        flask_thread.daemon = True
-        flask_thread.start()
-        
         await bot.delete_webhook(drop_pending_updates=True)
-        await dp.start_polling(bot)
+        await asyncio.gather(
+            run_web_server(),
+            dp.start_polling(bot)
+        )
     except Exception as e:
         logging.critical(f"Fatal error in main: {e}", exc_info=True)
         sys.exit(1)
