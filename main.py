@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 import os
+import threading
 import socket
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
@@ -11,11 +12,10 @@ from aiogram.client.default import DefaultBotProperties
 import aiohttp
 from aiohttp import web
 
-# Фикс DNS
 socket.getaddrinfo = lambda *args, **kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, '', ('149.154.167.220', 443))]
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-MINIAPP_URL = os.getenv("MINIAPP_URL", "https://effortless-entremet-6ace1b.netlify.app")
+MINIAPP_URL = os.getenv("MINIAPP_URL", "https://studiozorge.netlify.app")
 API_URL = os.getenv("API_URL", "http://localhost:3001/api")
 PORT = int(os.getenv("PORT", 10000))
 
@@ -68,20 +68,19 @@ async def contact_handler(message: Message):
             pass
 
     await message.answer(
-    "✅ <b>РЕГИСТРАЦИЯ ПРОЙДЕНА</b>\n"
-    "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-    "<i>Добро пожаловать в закрытое сообщество ZÖRGE.</i> 🔐\n\n"
-    "🎛️ Теперь вам доступны:\n"
-    "▸ 🗓️ <u>Аренда студии</u>\n"
-    "▸ 📦 <u>Пакеты часов</u>\n"
-    "▸ 🎚️ <u>Сведение и мастеринг</u>\n\n"
-    "<blockquote>💡 Чтобы открыть студию, нажмите кнопку меню слева от поля ввода.</blockquote>\n\n"
-    "<tg-spoiler>🔒 Ваш номер используется только для связи с администратором.</tg-spoiler>\n\n"
-    "<code>🎧 ZÖRGE — место, где рождается звук.</code>",
-    reply_markup=ReplyKeyboardRemove()
-)
+        "✅ <b>РЕГИСТРАЦИЯ ПРОЙДЕНА</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "<i>Добро пожаловать в закрытое сообщество ZÖRGE.</i> 🔐\n\n"
+        "🎛️ Теперь вам доступны:\n"
+        "▸ 🗓️ <u>Аренда студии</u>\n"
+        "▸ 📦 <u>Пакеты часов</u>\n"
+        "▸ 🎚️ <u>Сведение и мастеринг</u>\n\n"
+        "<blockquote>💡 Чтобы открыть студию, нажмите кнопку меню слева от поля ввода.</blockquote>\n\n"
+        "<tg-spoiler>🔒 Ваш номер используется только для связи с администратором.</tg-spoiler>\n\n"
+        "<code>🎧 ZÖRGE — место, где рождается звук.</code>",
+        reply_markup=ReplyKeyboardRemove()
+    )
 
-# Простой веб-сервер для Render
 async def handle_health(request):
     return web.Response(text="OK")
 
@@ -95,6 +94,9 @@ async def run_web_server():
     await site.start()
     logging.info(f"Web server started on port {PORT}")
 
+async def run_bot():
+    await dp.start_polling(bot)
+
 async def main():
     try:
         flask_thread = threading.Thread(target=run_flask)
@@ -106,8 +108,6 @@ async def main():
     except Exception as e:
         logging.critical(f"Fatal error in main: {e}", exc_info=True)
         sys.exit(1)
-    
-)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
