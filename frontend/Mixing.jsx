@@ -24,8 +24,14 @@ export default function Mixing() {
     if (!validatePhone(phone)) return alert('Введите корректный номер телефона');
 
     const msg = `Здравствуйте! Хочу заказать сведение: ${selected.name} (${selected.price} ₽). Меня зовут ${user?.first_name || 'Клиент'}, телефон ${phone}.`;
-    tg.openTelegramLink(`https://t.me/vkuve?text=${encodeURIComponent(msg)}`);
-    tg.close();
+    const url = `https://t.me/vkuve?text=${encodeURIComponent(msg)}`;
+    
+    if (tg && typeof tg.openTelegramLink === 'function') {
+      tg.openTelegramLink(url);
+      tg.close();
+    } else {
+      window.open(url, '_blank');
+    }
   };
 
   return (
