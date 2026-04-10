@@ -11,8 +11,14 @@ export default function Question() {
     if (!text.trim()) return alert('Введите вопрос');
 
     const msg = `Вопрос от ${user?.first_name || 'клиента'} (@${user?.username || 'нет username'}):\n\n${text}\n\nКонтакты: ${contact || 'не указаны'}`;
-    tg.openTelegramLink(`https://t.me/vkuve?text=${encodeURIComponent(msg)}`);
-    tg.close();
+    const url = `https://t.me/vkuve?text=${encodeURIComponent(msg)}`;
+    
+    if (tg && typeof tg.openTelegramLink === 'function') {
+      tg.openTelegramLink(url);
+      tg.close();
+    } else {
+      window.open(url, '_blank');
+    }
   };
 
   return (
