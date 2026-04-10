@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useTelegram } from '../hooks/useTelegram';
 import BackButton from '../components/BackButton';
-import api from '../api';
 
 const packages = [
   { id: 1, name: '6 часов', price: 3500 },
   { id: 2, name: '12 часов', price: 6000 },
-  { id: 3, name: '24 часа', price: 12000 }
+  { id: 3, name: '24 часа', price: 12000 },
 ];
 
 export default function Packages() {
@@ -14,48 +13,75 @@ export default function Packages() {
   const [selected, setSelected] = useState(null);
   const [phone, setPhone] = useState('');
 
-  const handleOrder = async () => {
-    if (!selected) return;
-    const msg = `Здравствуйте! Хочу приобрести пакет "${selected.name} (${selected.price} ₽)". Меня зовут ${user?.first_name}, телефон ${phone}.`;
-    tg.openTelegramLink(`https://t.me/zorge_manager?text=${encodeURIComponent(msg)}`);
-    try {
-      await api.post('/packages/order', {
-        packageName: selected.name,
-        price: selected.price,
-        clientName: user?.first_name,
-        phone
-      });
-    } catch (e) {}
+  const validatePhone = (num) => {
+    const cleaned = num.replace(/[\s()-]/g, '');
+    return /^\+?[0-9]{10,15}$/.test(cleaned);
+  };
+
+  const handleOrder = () => {
+    if (!selected) return alert('Выберите пакет');
+    if (!validatePhone(phone)) return alert('Введите корректный номер телефона');
+
+    const msg = `Здравствуйте! Хочу приобрести пакет "${selected.name} (${selected.price} ₽)". Меня зовут ${user?.first_name || 'Клиент'}, телефон ${phone}.`;
+    tg.openTelegramLink(`https://t.me/vkuve?text=${encodeURIComponent(msg)}`);
     tg.close();
   };
 
   return (
     <div style={{ padding: 20 }}>
       <BackButton />
-      <h2>Пакеты часов</h2>
-      {packages.map(p => (
+      <h2 style={{ fontSize: 28, marginBottom: 24 }}>Пакеты часов</h2>
+      {packages.map((p) => (
         <div
           key={p.id}
           onClick={() => setSelected(p)}
           style={{
-            border: '1px solid #ccc',
-            borderRadius: 12,
-            padding: 16,
-            marginBottom: 12,
+            border: selected?.id === p.id ? '3px solid #2AABEE' : '1px solid #ccc',
+            borderRadius: 20,
+            padding: 24,
+            marginBottom: 16,
             cursor: 'pointer',
-            background: selected?.id === p.id ? '#e0f0ff' : '#fff'
+            background: selected?.id === p.id ? '#f0f9ff' : '#fff',
           }}
         >
-          <strong>{p.name}</strong> — {p.price} ₽
+          <div style={{ fontSize: 24, fontWeight: '700' }}>{p.name}</div>
+          <div style={{ fontSize: 32, fontWeight: '800', color: '#2AABEE', marginTop: 8 }}>
+            {p.price} ₽
+          </div>
         </div>
       ))}
-      <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Ваш телефон" style={inputStyle} />
-      <button onClick={handleOrder} disabled={!selected} style={{ ...btnStyle, background: selected ? '#2AABEE' : '#ccc' }}>
+      <input
+        type="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="+7 900 123 45 67"
+        style={{
+          padding: 18,
+          width: '100%',
+          fontSize: 18,
+          border: '1px solid #ccc',
+          borderRadius: 16,
+          marginTop: 20,
+          marginBottom: 30,
+        }}
+      />
+      <button
+        onClick={handleOrder}
+        disabled={!selected}
+        style={{
+          padding: 20,
+          background: !selected ? '#ccc' : '#2AABEE',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 16,
+          width: '100%',
+          fontSize: 22,
+          fontWeight: '600',
+          cursor: 'pointer',
+        }}
+      >
         Оплатить
       </button>
     </div>
   );
 }
-
-const btnStyle = { padding: 16, color: '#fff', border: 'none', borderRadius: 12, width: '100%', marginTop: 20 };
-const inputStyle = { padding: 12, width: '100%', marginTop: 16, border: '1px solid #ccc', borderRadius: 8 };
