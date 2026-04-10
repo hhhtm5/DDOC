@@ -31,8 +31,14 @@ export default function Rent() {
 
     const formattedDate = date.toLocaleDateString('ru-RU');
     const msg = `Здравствуйте! Хочу забронировать студию на ${formattedDate} в ${time}. Тариф: ${tariff.name} (${tariff.price} ₽). Меня зовут ${user?.first_name || 'Клиент'}, телефон ${phone}.`;
-    tg.openTelegramLink(`https://t.me/vkuve?text=${encodeURIComponent(msg)}`);
-    tg.close();
+    const url = `https://t.me/vkuve?text=${encodeURIComponent(msg)}`;
+    
+    if (tg && typeof tg.openTelegramLink === 'function') {
+      tg.openTelegramLink(url);
+      tg.close();
+    } else {
+      window.open(url, '_blank');
+    }
   };
 
   return (
