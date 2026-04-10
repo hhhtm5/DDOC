@@ -1,22 +1,23 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Rent from './pages/Rent';
-import Packages from './pages/Packages';
-import Mixing from './pages/Mixing';
-import Question from './pages/Question';
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useTelegram } from '../hooks/useTelegram';
 
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/rent" element={<Rent />} />
-        <Route path="/packages" element={<Packages />} />
-        <Route path="/mixing" element={<Mixing />} />
-        <Route path="/question" element={<Question />} />
-      </Routes>
-    </BrowserRouter>
-  );
+export default function BackButton() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { tg } = useTelegram();
+
+  useEffect(() => {
+    if (!tg) return;
+    if (location.pathname === '/') {
+      tg.BackButton.hide();
+    } else {
+      tg.BackButton.show();
+      const handler = () => navigate(-1);
+      tg.BackButton.onClick(handler);
+      return () => tg.BackButton.offClick(handler);
+    }
+  }, [tg, location.pathname, navigate]);
+
+  return null;
 }
-
-export default App;
