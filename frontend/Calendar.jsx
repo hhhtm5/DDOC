@@ -1,13 +1,30 @@
-import axios from 'axios';
-const API_URL = import.meta.env.VITE_API_URL;
-const api = axios.create({ baseURL: API_URL });
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-export const authTelegram = (initData) => api.post('/auth/telegram', { initData });
-export const registerPhone = (data) => api.post('/auth/register', data);
-export const getServices = () => api.get('/bookings/services');
-export const createBooking = (data) => api.post('/bookings', data);
-export default api;
+import { useState } from 'react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+
+export default function BookingCalendar({ onSelectSlot }) {
+  const [date, setDate] = useState(new Date());
+
+  const handleDateChange = (value) => {
+    setDate(value);
+    onSelectSlot(value);
+  };
+
+  const tileDisabled = ({ date }) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
+  return (
+    <Calendar
+      onChange={handleDateChange}
+      value={date}
+      minDate={new Date()}
+      locale="ru-RU"
+      tileDisabled={tileDisabled}
+      prev2Label={null}
+      next2Label={null}
+    />
+  );
+}
