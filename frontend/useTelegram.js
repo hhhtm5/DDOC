@@ -1,14 +1,20 @@
-import { useState } from 'react';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
+import { useEffect, useState } from 'react';
 
-export default function BookingCalendar({ onSelectSlot }) {
-  const [date, setDate] = useState(new Date());
+export function useTelegram() {
+  const [tg, setTg] = useState(null);
+  const [user, setUser] = useState(null);
 
-  const handleDateChange = (value) => {
-    setDate(value);
-    onSelectSlot(value);
-  };
+  useEffect(() => {
+    const telegram = window.Telegram?.WebApp;
+    if (telegram) {
+      telegram.ready();
+      telegram.expand();
+      telegram.enableClosingConfirmation();
+      setTg(telegram);
+      setUser(telegram.initDataUnsafe?.user || null);
+      telegram.MainButton.hide();
+    }
+  }, []);
 
-  return <Calendar onChange={handleDateChange} value={date} minDate={new Date()} />;
+  return { tg, user };
 }
