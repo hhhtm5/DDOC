@@ -1,20 +1,23 @@
 export default function TariffSelector({ options, selected, onSelect }) {
   return (
-    <div>
-      {options.map(opt => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {options.map((opt) => (
         <div
           key={opt.id}
           onClick={() => onSelect(opt)}
           style={{
-            border: '1px solid #ccc',
-            borderRadius: 12,
-            padding: 16,
-            marginBottom: 12,
+            border: selected?.id === opt.id ? '3px solid #2AABEE' : '1px solid #ccc',
+            borderRadius: 16,
+            padding: 18,
             cursor: 'pointer',
-            background: selected?.id === opt.id ? '#e0f0ff' : '#fff'
+            background: selected?.id === opt.id ? '#e6f4ff' : '#fff',
+            transition: 'all 0.2s',
           }}
         >
-          <strong>{opt.name}</strong> — {opt.price} ₽
+          <div style={{ fontSize: 18, fontWeight: '600' }}>{opt.name}</div>
+          <div style={{ fontSize: 24, fontWeight: '700', color: '#2AABEE', marginTop: 8 }}>
+            {opt.price} ₽
+          </div>
         </div>
       ))}
     </div>
